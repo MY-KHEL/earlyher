@@ -25,6 +25,12 @@ export const HeroSection = () => {
                                         <p className="text-[10px]">Of women in African countries are diagnosed at a late stage.</p>
                                     </div>
                             </div>
+                            <div className="absolute w-[200px]  bottom-30 md:bottom-15 scale-50 md:scale-100 -right-20 md:-right-25 bg-project-green rounded-lg p-2  max-w-sm md:max-w-md lg:max-w-lg mx-auto p-4 md:p-6 ">
+                                    <div className="flex items-center">
+                                        
+                                        <p className="text-[10px]">Spit dey show wetin body dey hide</p>
+                                    </div>
+                            </div>
                         </div>
 
                 </div>
