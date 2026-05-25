@@ -1,4 +1,4 @@
-// components/hero.tsx
+
 
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -7,42 +7,33 @@ export default function Hero() {
   return (
     <section className="relative overflow-hidden bg-[#F7FAF8]">
       
-      <div className="relative mx-auto flex max-w-7xl flex-col items-center gap-12 px-4 py-16 md:px-6 lg:flex-row lg:py-24">
+      <div className="relative mx-auto flex flex-col items-center gap-12 px-4 py-16 md:px-6 lg:flex-row lg:py-15">
         
         {/* LEFT CONTENT */}
         <div className="flex-1 space-y-8 text-center lg:text-left">
 
           {/* Main Heading */}
-          <div className="space-y-4">
-            <h1 className="text-4xl font-bold leading-tight tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-              Prevention is <span className="text-green-600">free</span>.
-              <br />
-              Cure is not.
-            </h1>
+          <div className="space-y-3">
+            <h2 className="text-2xl font-bold leading-tight tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
+             What is Nutritec <span className="text-project-green">Ai?</span> 
+            </h2>
 
-            <p className="mx-auto max-w-xl text-base leading-relaxed text-gray-600 lg:mx-0">
-              Assess your risk of breast cancer and get personalized nutrition tips to prevent it in less than 10 minutes.
+            <p className="mx-auto max-w-xl text-xl leading-relaxed text-gray-600 lg:mx-0">
+              Nutritec AI helps women assess their breast cancer risk and receive personalized nutrition guidance to support prevention in minutes, contributing to UN SDG 3: Good Health & Well-being.  and supporting SDGs 5, 10, and 9 through accessible, AI-driven healthcare.
             </p>
           </div>
 
-          {/* CTA Buttons */}
-          <div className="">
-            <Button className="h-12 rounded-full bg-green-600 px-8 text-base hover:bg-green-700">
-              join the waitlist and try demo
-            </Button>
-
-           
-          </div>
+         
         </div>
 
         {/* RIGHT IMAGE */}
-        <div className="relative flex flex-1 items-center justify-center">
+        <div className="relative flex flex-1 items-center justify-end">
 
           
           {/* DESKTOP IMAGE */}
           <div className="relative hidden overflow-hidden p-3  lg:block">
             <Image
-              src="/HeroBannerDesktop.png"
+              src="/AboutImgDesktop.png"
               alt="NutritecAI Desktop"
               width={500}
               height={700}
@@ -54,7 +45,7 @@ export default function Hero() {
           {/* MOBILE IMAGE */}
           <div className="relative overflow-hidden  lg:hidden">
             <Image
-              src="/HeroBannerMobile.png"
+              src="/AboutImgMobile.png"
               alt="NutritecAI Mobile"
               width={350}
               height={500}
