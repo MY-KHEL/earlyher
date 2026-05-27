@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { SiteFooter } from "@/components/Homepage/SiteFooter";
-
+import Footer from "@/components/Homepage/Footer";
+//layyout
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -30,7 +30,7 @@ export default function RootLayout({
       >
         <div className="relative">
           {children}
-        <SiteFooter/>
+        <Footer/>
         </div>
       </body>
     </html>
