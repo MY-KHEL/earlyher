@@ -1,99 +1,156 @@
 import { NextResponse } from "next/server";
 
-export async function POST(req: Request) {
-  try {
-    const { personalData, familyData ,nutritionData} = await req.json();
+async function callGemini(prompt: string, retries = 5) {
+  let delay = 1000;
 
-    const prompt = `
-You are a highly accurate medical AI model trained in statistical cancer risk assessments. Based on the following structured patient data, give the following
-
-1. A single-line risk percentage estimate
-2. A concise one paragraph reasoning (max 3 sentences)
-
-Be brief and assume missing information based on population averages. Do not explain what is missing - just give your best estimate and reasoning in plain language.
-Give your best evidence-based estimate and use similar logic as the Gail or Tyrer-Cuzick model, even if simplified and make it personalized
-
-Output Format:
----
-Breast Cancer Risk Estimate: [XX]%  
-Reasoning: [Short and clear explanation]
----
-
-Patient Personal Data:
-${JSON.stringify(personalData, null, 2)}
-
-Family Medical History:
-${JSON.stringify(familyData, null, 2)}
-
-Lifestyle and Nutrition Data:
-${JSON.stringify(nutritionData, null, 2)}
-
-
-You are required to provide a numeric risk estimation, even if based on partial data. Do not say you cannot provide a precise number
-`;
-
-    console.log("📤 Sending Prompt:", prompt);
-
+  for (let attempt = 1; attempt <= retries; attempt++) {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "x-goog-api-key": process.env.GEMINI_API_KEY!,
         },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
-        })
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.1,
+          },
+        }),
       }
     );
 
     const rawText = await res.text();
-    console.log("🧾 Raw Gemini Response:", rawText);
-    console.log("📦 Response Status:", res.status);
 
-    let result;
+    console.log(`🟡 Attempt ${attempt}`);
+    console.log("📦 Status:", res.status);
+    console.log("🧾 Raw Gemini Response:", rawText);
+
+    let result: any = {};
+
     try {
       result = JSON.parse(rawText);
-      if (!rawText) {
-  console.warn("⚠️ Empty response from Gemini — possibly quota exhaustion or bad endpoint.");
+    } catch {
+      throw new Error("Invalid JSON returned from Gemini");
+    }
+
+    // Success
+    if (res.ok && !result.error) {
+      return result;
+    }
+
+    // Retry for temporary failures
+    if (
+      (res.status === 429 || res.status === 503) &&
+      attempt < retries
+    ) {
+      console.log(
+        `⏳ Retrying in ${delay / 1000}s...`
+      );
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, delay)
+      );
+
+      // exponential backoff + jitter
+      delay = delay * 2 + Math.random() * 500;
+
+      continue;
+    }
+
+    throw new Error(
+      result.error?.message ||
+        `Gemini request failed with status ${res.status}`
+    );
+  }
+
+  throw new Error("Maximum retry attempts reached");
 }
-    } catch (err) {
-      console.error("JSON Parse Error:", err);
+
+export async function POST(req: Request) {
+  try {
+    if (!process.env.GEMINI_API_KEY) {
+      return NextResponse.json(
+        { error: "Missing Gemini API key" },
+        { status: 500 }
+      );
+    }
+
+    const body = await req.json();
+
+    if (!body || Object.keys(body).length === 0) {
+      return NextResponse.json(
+        { error: "No patient data provided" },
+        { status: 400 }
+      );
+    }
+
+    console.log(
+      "📥 Received patient data:",
+      JSON.stringify(body, null, 2)
+    );
+
+    const prompt = `
+You are a highly accurate medical AI model trained in statistical cancer risk assessments using validated models (Gail, Tyrer-Cuzick, BWHS, BOADICEA).
+
+Based on the structured patient data below, estimate the patient's lifetime breast cancer risk as a single integer percentage (0 - 100).
+
+Rules:
+- Return ONLY a single integer number (e.g. 23). No text, no %, no explanation, no formatting.
+- Use population averages for any missing fields.
+- Apply logic consistent with Gail/Tyrer-Cuzick models, adjusted for African ancestry where relevant.
+- You must always return a number — never refuse or say you cannot estimate.
+
+Patient Data:
+${JSON.stringify(body, null, 2)}
+`;
+
+    const result = await callGemini(prompt);
+
+    console.log(
+      "✅ Full Gemini response:",
+      JSON.stringify(result, null, 2)
+    );
+
+    const rawMessage =
+      result?.candidates?.[0]?.content?.parts
+        ?.map((part: any) => part.text || "")
+        .join(" ")
+        .trim() || "";
+
+    console.log("📝 Extracted text:", rawMessage);
+
+    const match = rawMessage.match(/\d+/);
+
+    if (!match) {
       return NextResponse.json(
         {
-          error: "Invalid response from Gemini",
-          raw: rawText
-          
+          error: "Model did not return a numeric estimate",
+          raw: rawMessage,
         },
         { status: 500 }
-        
       );
     }
 
-    if (!res.ok || result.error) {
-      console.error(" Gemini API Error:", result.error || result);
-      return NextResponse.json(
-        {
-          error: result.error?.message || "Gemini API returned an error",
-          status: result.error?.code || res.status,
-          details: result
-        },
-        { status: res.status }
-      );
-    }
+    const riskScore = Math.min(
+      100,
+      Math.max(0, parseInt(match[0], 10))
+    );
 
-    const message =
-      result?.candidates?.[0]?.content?.parts?.[0]?.text ??
-      result?.candidates?.[0]?.content?.text ??
-      "No AI response.";
+    console.log("✅ Risk Score:", riskScore);
 
-    return NextResponse.json({ message });
+    return NextResponse.json({ riskScore });
   } catch (error: any) {
-    console.error("❌ Server error in Gemini route:", error.message || error);
+    console.error(
+      "❌ Server error:",
+      error.message || error
+    );
+
     return NextResponse.json(
       {
-        error: "Server exception",
-        message: error.message || String(error)
+        error:
+          error.message || "Unexpected server error",
       },
       { status: 500 }
     );

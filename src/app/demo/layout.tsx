@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import Footer from "@/components/Homepage/Footer";
-import { NavBar } from "@/components/v2/homepage/navBar";
+import Link from "next/link";
 
 //layyout
 const geistSans = Geist({
@@ -25,17 +23,24 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
- 
-  
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <div className="relative">
-          <NavBar/>
+          <div className="flex justify-between p-3">
+            <div className=" flex items-center gap-3">
+              <h4 className="text-md flex justify-center items-center font-semibold text-white bg-[#d81b60] w-8 rounded-full aspect-square ">
+                E
+              </h4>
+              <h3 className="font-bold  text-xl ">EarlyHer</h3>
+            </div>
+
+            <Link href={"/"}>Exit Assessment</Link>
+          </div>
           {children}
-        {/* <Footer/> */}
+          {/* <Footer/> */}
         </div>
       </body>
     </html>
