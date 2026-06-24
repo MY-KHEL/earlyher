@@ -105,7 +105,7 @@ export default function ResultPage() {
             Email me my results
         </button>
         <button className="w-full text-white  border-white border-2 rounded-md p-4">
-            Email me my results
+            Find a clinic near me
         </button>
 
 
