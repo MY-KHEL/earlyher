@@ -42,7 +42,7 @@ export function HeroSection() {
           </div>
           <h4 className="text-[#f9a8c9]">CREATED FOR AN AFRICAN WOMAN</h4>
         </div>
-        <h1 className="text-white text-[80px] leading-[110%] font-semibold max-w-[600px]">
+        <h1 className="text-white text-[40px] md:text-[80px] leading-[110%] font-semibold max-w-[600px]">
           Know Your <span className="text-[#f9a8c9]">Breast Cancer </span> Risk.
         </h1>
         <p className="max-w-[400px] text-white/70">
